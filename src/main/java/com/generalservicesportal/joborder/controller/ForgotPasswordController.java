@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 
     @RestController
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "https://generalservices.vercel.app")
     @RequestMapping("/api")
     public class ForgotPasswordController {
 
@@ -95,7 +95,7 @@ private UserService userService;
             String content = "<p>Hello,</p>"
                     + "<p>You have requested to reset your password.</p>"
                     + "<p>Click the link below to change your password:</p>"
-                    + "<p><a href=\"" + "http://localhost:3000/reset_password?token=" + token + "\">Change my password</a></p>"
+                    + "<p><a href=\"" + "https://generalservices.vercel.app/reset_password?token=" + token + "\">Change my password</a></p>"
                     + "<br>"
                     + "<p>Ignore this email if you do remember your password, "
                     + "or you have not made the request.</p>";
