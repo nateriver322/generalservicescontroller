@@ -244,6 +244,10 @@ public class TicketController {
                 Ticket ticket = optionalTicket.get();
                 ticket.setFeedback(feedback);
                 ticket.setStatus("Resolved"); // Change status to "Done"
+
+                String resolvedDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
+                ticket.setResolvedDatetime(resolvedDatetime);
+                
                 ticketService.saveTicket(ticket);
 
                 // Create a notification for the user

@@ -4,18 +4,6 @@ import jakarta.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-
 @Entity
 @Table(name = "tickets")
 public class Ticket {
@@ -41,6 +29,7 @@ public class Ticket {
     private String scheduledRepairDate; 
     private String feedback;
     private String userFeedback;
+    private String resolvedDatetime;
     
     @ElementCollection
     @CollectionTable(name = "personnel_feedbacks", joinColumns = @JoinColumn(name = "ticket_id"))
@@ -123,6 +112,14 @@ public class Ticket {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getResolvedDatetime() {
+        return resolvedDatetime;
+    }
+
+    public void setResolvedDatetime(String resolvedDatetime) {
+        this.resolvedDatetime = resolvedDatetime;
     }
 
     public void setDescription(String description) {
