@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Column;
 
 @Entity
 public class User {
@@ -19,6 +20,9 @@ public class User {
 	 private String subrole;
 	 private boolean isMicrosoftAuth;
 	 private String resetPasswordToken;
+
+	 @Column(unique = true)
+	 private String personnelId;  // New field for personnel ID
 	 
 	 
 	public User() {
@@ -31,6 +35,14 @@ public class User {
 	public void setId(int id) {
 		this.id = id;
 	}
+
+	public String getPersonnelId() {
+        return personnelId;
+    }
+
+    public void setPersonnelId(String personnelId) {
+        this.personnelId = personnelId;
+    }
 
 	public String getUsername() {
 		return username;

@@ -27,6 +27,15 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl() {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
+
+
+    public User findUserByPersonnelId(String personnelId) {
+        return userRepository.findUserByPersonnelId(personnelId);
+    }
+
+    public boolean existsByPersonnelId(String personnelId) {
+        return userRepository.existsByPersonnelId(personnelId);
+    }
     
     @Override
     public void updateResetPassword(String token, String email)throws UserNotFoundException{
