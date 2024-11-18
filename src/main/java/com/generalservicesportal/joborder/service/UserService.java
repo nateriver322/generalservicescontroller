@@ -31,4 +31,6 @@ public interface UserService {
 
 	User findUserByPersonnelId(String personnelId);
     boolean existsByPersonnelId(String personnelId);
+
+	User authenticatePersonnel(String personnelId) throws InvalidPersonnelIdException;
 }

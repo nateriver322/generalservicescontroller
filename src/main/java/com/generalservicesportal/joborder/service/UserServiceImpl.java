@@ -28,6 +28,19 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
+    public User authenticatePersonnel(String personnelId) throws InvalidPersonnelIdException {
+        // Retrieve the user from the database based on the provided personnel ID
+        User user = userRepository.findUserByPersonnelId(personnelId);
+    
+        // If the user is found and has the "Personnel" role, return the user object
+        if (user != null && "Personnel".equals(user.getRole())) {
+            return user;
+        }
+    
+        // If the user is not found or does not have the "Personnel" role, throw an exception
+        throw new InvalidPersonnelIdException("Invalid personnel ID");
+    }
+
 
     public User findUserByPersonnelId(String personnelId) {
         return userRepository.findUserByPersonnelId(personnelId);

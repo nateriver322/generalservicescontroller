@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.generalservicesportal.joborder.model.MicrosoftLoginRequest;
 import com.generalservicesportal.joborder.model.PersonnelLoginRequest;
 import com.generalservicesportal.joborder.model.User;
+import com.generalservicesportal.joborder.service.InvalidPersonnelIdException;
 import com.generalservicesportal.joborder.service.MicrosoftAuthService;
 import com.generalservicesportal.joborder.service.UserService;
 
@@ -101,37 +102,32 @@ public class UserController {
                                  .body("Invalid Microsoft token: " + e.getMessage());
         }
     }
-
-@PostMapping("/personnel-login")
+    @PostMapping("/personnel-login")
     public ResponseEntity<?> personnelLogin(@RequestBody PersonnelLoginRequest request) {
         try {
-            User user = userService.findUserByPersonnelId(request.getPersonnelId());
-            
-            if (user != null && "Personnel".equals(user.getRole())) {
+            User user = userService.authenticatePersonnel(request.getPersonnelId());
+    
+            if (user != null) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("message", "Login successful");
                 response.put("id", user.getId());
                 response.put("username", user.getUsername());
                 response.put("role", user.getRole());
                 response.put("subrole", user.getSubrole());
-                response.put("email", user.getEmail());
-                response.put("contactNumber", user.getContactNumber());
-                
                 return ResponseEntity.ok(response);
             }
-            
+        } catch (InvalidPersonnelIdException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Invalid personnel ID");
-                
+                    .body("Invalid personnel ID");
         } catch (Exception e) {
+            System.err.println("An error occurred during personnel login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("An error occurred during login");
+                    .body("An error occurred during login");
         }
+    
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid personnel ID");
     }
-
-
-    
-    
 
     @PostMapping("/add")
     public ResponseEntity<?> add(@RequestBody User user) {
