@@ -30,7 +30,9 @@ public class Ticket {
     private String feedback;
     private String userFeedback;
     private String resolvedDatetime;
+    private String archiveDatetime;
     
+   
     @ElementCollection
     @CollectionTable(name = "personnel_feedbacks", joinColumns = @JoinColumn(name = "ticket_id"))
     @MapKeyColumn(name = "personnel_username")
@@ -53,6 +55,16 @@ public class Ticket {
     public void setId(Long id) {
         this.id = id;
     }
+
+
+    public String getArchiveDatetime() {
+        return archiveDatetime;
+    }
+
+    public void setArchiveDatetime(String archiveDatetime) {
+        this.archiveDatetime = archiveDatetime;
+    }
+
 
     public String getUsername() {
         return username;
