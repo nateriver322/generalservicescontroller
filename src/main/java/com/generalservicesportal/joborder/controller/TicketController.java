@@ -81,26 +81,15 @@ public class TicketController {
     public ResponseEntity<List<Ticket>> getTicketsByUsername(@PathVariable String username) {
         try {
             List<Ticket> tickets = ticketService.findTicketsByUsername(username);
-            
-            // Process images
             tickets.forEach(ticket -> {
                 if (ticket.getImage() != null) {
+                    // Convert the image byte array to Base64
                     String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
                     ticket.setImageBase64(imageBase64);
+                    // Nullify the image byte array to not send as binary data
                     ticket.setImage(null);
                 }
             });
-
-            // Sort tickets: Archived and Cancelled tickets at the bottom
-            tickets.sort((t1, t2) -> {
-                boolean t1Archived = "Archived".equals(t1.getStatus()) || "Cancelled".equals(t1.getStatus());
-                boolean t2Archived = "Archived".equals(t2.getStatus()) || "Cancelled".equals(t2.getStatus());
-                
-                if (t1Archived && !t2Archived) return 1;
-                if (!t1Archived && t2Archived) return -1;
-                return 0;
-            });
-
             if (!tickets.isEmpty()) {
                 return ResponseEntity.ok(tickets);
             } else {
@@ -142,51 +131,6 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting ticket: " + e.getMessage());
         }
     }
-
-
-    @PatchMapping("/tickets/{id}/archive")
-    public ResponseEntity<?> archiveTicket(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        try {
-            Optional<Ticket> optionalTicket = ticketService.getTicketById(id);
-            if (optionalTicket.isPresent()) {
-                Ticket ticket = optionalTicket.get();
-                String newStatus = payload.get("status"); // Should be either "Archived" or "Cancelled"
-                
-                // Validate the requested status
-                if (!"Archived".equals(newStatus) && !"Cancelled".equals(newStatus)) {
-                    return ResponseEntity.badRequest().body("Invalid status. Must be either 'Archived' or 'Cancelled'");
-                }
-
-                // Only allow archiving of resolved tickets
-                if ("Archived".equals(newStatus) && !"Resolved".equals(ticket.getStatus())) {
-                    return ResponseEntity.badRequest().body("Only resolved tickets can be archived");
-                }
-
-                // Update ticket status
-                ticket.setStatus(newStatus);
-                
-                // Add archive datetime
-                String archiveDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
-                ticket.setArchiveDatetime(archiveDatetime);
-                
-                ticketService.saveTicket(ticket);
-
-                // Create notification
-                String notificationMessage = newStatus.equals("Archived") 
-                    ? "Your ticket (ID: " + id + ") has been archived."
-                    : "Your ticket (ID: " + id + ") has been cancelled.";
-                notificationService.createNotification(ticket.getUsername(), notificationMessage);
-
-                return ResponseEntity.ok("Ticket successfully " + newStatus.toLowerCase());
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error archiving ticket: " + e.getMessage());
-        }
-    }
-
     
     @PostMapping("/tickets/assign")
     public ResponseEntity<?> assignTicketToPersonnel(
