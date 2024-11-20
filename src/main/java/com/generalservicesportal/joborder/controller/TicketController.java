@@ -208,33 +208,32 @@ public class TicketController {
     }
     
     @PostMapping("/tickets/{ticketId}/user-feedback")
-public ResponseEntity<?> submitUserFeedback(@PathVariable Long ticketId, @RequestBody Map<String, String> payload) {
-    try {
-        String feedback = payload.get("feedback");
-        Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
-        if (optionalTicket.isPresent()) {
-            Ticket ticket = optionalTicket.get();
-            
-            // Append the new feedback to the existing feedback, if any
-            if (ticket.getUserFeedback() != null && !ticket.getUserFeedback().isEmpty()) {
-                feedback = ticket.getUserFeedback() + "\n\n" + feedback;
+    public ResponseEntity<?> submitUserFeedback(@PathVariable Long ticketId, @RequestBody Map<String, String> payload) {
+        try {
+            String feedback = payload.get("feedback");
+            Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
+            if (optionalTicket.isPresent()) {
+                Ticket ticket = optionalTicket.get();
+                
+                if (ticket.getUserFeedback() != null && !ticket.getUserFeedback().isEmpty()) {
+                    return ResponseEntity.badRequest().body("User feedback has already been submitted for this ticket");
+                }
+                
+                ticket.setUserFeedback(feedback);
+                ticketService.saveTicket(ticket);
+
+                // Create a notification for staff
+                notificationService.createNotification("staff", 
+                    "New user feedback received for ticket (ID: " + ticketId + ")");
+
+                return ResponseEntity.ok("User feedback submitted successfully");
+            } else {
+                return ResponseEntity.notFound().build();
             }
-            
-            ticket.setUserFeedback(feedback);
-            ticketService.saveTicket(ticket);
-
-            // Create a notification for staff
-            notificationService.createNotification("staff", 
-                "New user feedback received for ticket (ID: " + ticketId + ")");
-
-            return ResponseEntity.ok("User feedback submitted successfully");
-        } else {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error submitting user feedback: " + e.getMessage());
         }
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error submitting user feedback: " + e.getMessage());
     }
-}
     
     @PostMapping("/tickets/{ticketId}/staff-feedback")
     public ResponseEntity<?> submitStaffFeedback(@PathVariable Long ticketId, @RequestBody Map<String, String> payload) {
