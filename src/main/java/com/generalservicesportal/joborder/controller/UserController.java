@@ -206,28 +206,46 @@ public class UserController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User updatedUser) {
-        User existingUser = userService.findUserById(id);
-        if (existingUser != null) {
-            // Update only the role if provided
-            if (updatedUser.getRole() != null) {
-                existingUser.setRole(updatedUser.getRole());
+public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User updatedUser) {
+    User existingUser = userService.findUserById(id);
+    if (existingUser != null) {
+        // Update username if provided
+        if (updatedUser.getUsername() != null && !updatedUser.getUsername().isEmpty()) {
+            User existingUserWithUsername = userService.findUserByUsername(updatedUser.getUsername());
+            if (existingUserWithUsername != null && existingUserWithUsername.getId() != id) {
+                return ResponseEntity.badRequest().body("Username already exists");
             }
-
-            // Only update the password if it's provided and different
-            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                if (!updatedUser.getPassword().startsWith("$2a$")) {
-                    existingUser.setPassword(userService.encodePassword(updatedUser.getPassword()));
-                }
-            }
-
-            // Save the user with updated role (and optionally password), but keep other fields unchanged
-            userService.saveUser(existingUser);
-            return ResponseEntity.ok("User updated successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            existingUser.setUsername(updatedUser.getUsername());
         }
+
+        // Update contact number if provided
+        if (updatedUser.getContactNumber() != null && !updatedUser.getContactNumber().isEmpty()) {
+            // Add your contact number format validation here
+            if (!updatedUser.getContactNumber().matches("^[0-9]{10}$")) { // Example: requires exactly 10 digits
+                return ResponseEntity.badRequest().body("Invalid contact number format");
+            }
+            existingUser.setContactNumber(updatedUser.getContactNumber());
+        }
+
+        // Update role if provided
+        if (updatedUser.getRole() != null) {
+            existingUser.setRole(updatedUser.getRole());
+        }
+
+        // Update password if provided and not already encoded
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            if (!updatedUser.getPassword().startsWith("$2a$")) {
+                existingUser.setPassword(userService.encodePassword(updatedUser.getPassword()));
+            }
+        }
+
+        // Save all updates
+        userService.saveUser(existingUser);
+        return ResponseEntity.ok().body(existingUser); // Return updated user object
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
     }
+}
     
     @GetMapping("/personnel")
     public ResponseEntity<List<User>> getPersonnel() {
