@@ -221,7 +221,7 @@ public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User upda
         // Update contact number if provided
         if (updatedUser.getContactNumber() != null && !updatedUser.getContactNumber().isEmpty()) {
             // Add your contact number format validation here
-            if (!updatedUser.getContactNumber().matches("^[0-9]{10}$")) { // Example: requires exactly 10 digits
+            if (!updatedUser.getContactNumber().matches("^[0-9]{11}$")) { // Example: requires exactly 10 digits
                 return ResponseEntity.badRequest().body("Invalid contact number format");
             }
             existingUser.setContactNumber(updatedUser.getContactNumber());
