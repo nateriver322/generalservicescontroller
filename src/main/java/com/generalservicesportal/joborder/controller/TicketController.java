@@ -78,44 +78,46 @@ public class TicketController {
 
 
     @GetMapping("/tickets/user/{username}")
-    public ResponseEntity<List<Ticket>> getTicketsByUsername(@PathVariable String username) {
-        try {
-            List<Ticket> tickets = ticketService.findTicketsByUsername(username);
-            tickets.forEach(ticket -> {
-                if (ticket.getImage() != null) {
-                    // Convert the image byte array to Base64
-                    String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
-                    ticket.setImageBase64(imageBase64);
-                    // Nullify the image byte array to not send as binary data
-                    ticket.setImage(null);
-                }
-            });
-            if (!tickets.isEmpty()) {
-                return ResponseEntity.ok(tickets);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
-        }
-    }
-    
-    @GetMapping("/tickets")
-    public ResponseEntity<List<Ticket>> getAllTickets() {
-        try {
-            List<Ticket> tickets = ticketService.findAllTickets();
-            tickets.forEach(ticket -> {
+public ResponseEntity<List<Ticket>> getTicketsByUsername(@PathVariable String username) {
+    try {
+        List<Ticket> tickets = ticketService.findTicketsByUsername(username).stream()
+            .filter(ticket -> !ticket.isArchived())  // Filter out archived tickets
+            .peek(ticket -> {
                 if (ticket.getImage() != null) {
                     String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
                     ticket.setImageBase64(imageBase64);
                     ticket.setImage(null);
                 }
-            });
+            })
+            .collect(Collectors.toList());
+        if (!tickets.isEmpty()) {
             return ResponseEntity.ok(tickets);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        } else {
+            return ResponseEntity.notFound().build();
         }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
     }
+}
+    
+@GetMapping("/tickets")
+public ResponseEntity<List<Ticket>> getAllTickets() {
+    try {
+        List<Ticket> tickets = ticketService.findAllTickets().stream()
+            .filter(ticket -> !ticket.isArchived())  // Filter out archived tickets
+            .peek(ticket -> {
+                if (ticket.getImage() != null) {
+                    String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
+                    ticket.setImageBase64(imageBase64);
+                    ticket.setImage(null);
+                }
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(tickets);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+    }
+}
     
     @DeleteMapping("/tickets/{id}")
     public ResponseEntity<?> deleteTicket(@PathVariable Long id) {
@@ -162,27 +164,27 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/personnel/{personnelUsername}")
-    public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String personnelUsername) {
-        try {
-            List<Ticket> tickets = ticketService.findTicketsByAssignedPersonnel(personnelUsername);
-            tickets = tickets.stream()
-                    .filter(ticket -> {
-                        String[] assignedPersonnelArray = ticket.getAssignedPersonnel().split(", ");
-                        return Arrays.asList(assignedPersonnelArray).contains(personnelUsername);
-                    })
-                    .collect(Collectors.toList());
-            tickets.forEach(ticket -> {
+public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String personnelUsername) {
+    try {
+        List<Ticket> tickets = ticketService.findTicketsByAssignedPersonnel(personnelUsername).stream()
+            .filter(ticket -> !ticket.isArchived())  // Filter out archived tickets
+            .filter(ticket -> {
+                String[] assignedPersonnelArray = ticket.getAssignedPersonnel().split(", ");
+                return Arrays.asList(assignedPersonnelArray).contains(personnelUsername);
+            })
+            .peek(ticket -> {
                 if (ticket.getImage() != null) {
                     String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
                     ticket.setImageBase64(imageBase64);
                     ticket.setImage(null);
                 }
-            });
-            return ResponseEntity.ok(tickets);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
-        }
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(tickets);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
     }
+}
     
     @PostMapping("/tickets/{ticketId}/feedback")
     public ResponseEntity<?> submitFeedback(@PathVariable Long ticketId, @RequestParam String feedback) {
@@ -347,4 +349,61 @@ public ResponseEntity<Map<String, Integer>> getPersonnelWorkload() {
     }
 }
     
+@PostMapping("/tickets/{id}/archive")
+public ResponseEntity<?> archiveTicket(@PathVariable Long id) {
+    try {
+        Optional<Ticket> optionalTicket = ticketService.getTicketById(id);
+        if (optionalTicket.isPresent()) {
+            Ticket ticket = optionalTicket.get();
+            ticket.setArchived(true);
+            ticketService.saveTicket(ticket);
+            return ResponseEntity.ok("Ticket successfully archived");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Error archiving ticket: " + e.getMessage());
+    }
+}
+
+@PostMapping("/tickets/{id}/unarchive")
+public ResponseEntity<?> unarchiveTicket(@PathVariable Long id) {
+    try {
+        Optional<Ticket> optionalTicket = ticketService.getTicketById(id);
+        if (optionalTicket.isPresent()) {
+            Ticket ticket = optionalTicket.get();
+            ticket.setArchived(false);
+            ticketService.saveTicket(ticket);
+            return ResponseEntity.ok("Ticket successfully unarchived");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Error unarchiving ticket: " + e.getMessage());
+    }
+}
+
+@GetMapping("/tickets/archived")
+public ResponseEntity<List<Ticket>> getArchivedTickets() {
+    try {
+        List<Ticket> tickets = ticketService.findAllTickets().stream()
+            .filter(Ticket::isArchived)
+            .peek(ticket -> {
+                if (ticket.getImage() != null) {
+                    String imageBase64 = Base64.getEncoder().encodeToString(ticket.getImage());
+                    ticket.setImageBase64(imageBase64);
+                    ticket.setImage(null);
+                }
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(tickets);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+    }
+}
+
+
+
 }

@@ -30,6 +30,8 @@ public class Ticket {
     private String feedback;
     private String userFeedback;
     private String resolvedDatetime;
+    @Column(nullable = false)
+    private boolean archived = false;    
     
     @ElementCollection
     @CollectionTable(name = "personnel_feedbacks", joinColumns = @JoinColumn(name = "ticket_id"))
@@ -185,4 +187,13 @@ public class Ticket {
     public void addPersonnelFeedback(String personnelUsername, String feedback) {
         this.personnelFeedbacks.put(personnelUsername, feedback);
     }
+
+    public boolean isArchived() {
+        return archived;
+    }
+    
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
 }
