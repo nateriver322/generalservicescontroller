@@ -247,7 +247,10 @@ public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String p
                 ticket.setFeedback(feedback);
                 ticket.setStatus("Resolved"); // Change status to "Done"
 
-                String resolvedDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a");
+                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Manila")); // Replace with your specific time zone
+                String resolvedDatetime = sdf.format(new Date());
+                
                 ticket.setResolvedDatetime(resolvedDatetime);
                 
                 ticketService.saveTicket(ticket);
