@@ -29,50 +29,50 @@ public class TicketController {
     private NotificationService notificationService;
 
     @PostMapping("/tickets")
-    @Transactional
-    public ResponseEntity<?> uploadTicket(@RequestParam("image") Optional<MultipartFile> optionalFile,
-                                          @RequestParam("username") String username,
-                                          @RequestParam("priority") String priority,
-                                          @RequestParam("workType") String workType,
-                                          @RequestParam("requestType") String requestType,
-                                          @RequestParam("location") String location,
-                                          @RequestParam("description") String description) {
-        try {
-            Ticket ticket = new Ticket();
-            ticket.setUsername(username);
-            ticket.setPriority(priority);
-            ticket.setWorkType(workType);
-            ticket.setRequestType(requestType);
-            ticket.setLocation(location);
+@Transactional
+public ResponseEntity<?> uploadTicket(@RequestParam("image") Optional<MultipartFile> optionalFile,
+                                      @RequestParam("username") String username,
+                                      @RequestParam("priority") String priority,
+                                      @RequestParam("workType") String workType,
+                                      @RequestParam("requestType") String requestType,
+                                      @RequestParam("location") String location,
+                                      @RequestParam("description") String description,
+                                      @RequestParam("datetime") String clientDatetime) {
+    try {
+        Ticket ticket = new Ticket();
+        ticket.setUsername(username);
+        ticket.setPriority(priority);
+        ticket.setWorkType(workType);
+        ticket.setRequestType(requestType);
+        ticket.setLocation(location);
 
-            // Automatically set the current date and time
-            String currentDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
-            ticket.setDatetime(currentDatetime);
+        // Use the client-side datetime instead of server time
+        ticket.setDatetime(clientDatetime);
 
-            ticket.setDescription(description);
-            ticket.setStatus("Pending");
+        ticket.setDescription(description);
+        ticket.setStatus("Pending");
 
-            // Check if image is present and not empty
-            if (optionalFile.isPresent() && !optionalFile.get().isEmpty()) {
-                MultipartFile imageFile = optionalFile.get();
-                // Ensure the image is less than or equal to 10MB
-                if (imageFile.getSize() > 10 * 1024 * 1024) { // 10MB in bytes
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                         .body("File size exceeds the maximum limit of 10MB");
-                }
-
-                byte[] imageBytes = imageFile.getBytes();
-                ticket.setImage(imageBytes);
+        // Check if image is present and not empty
+        if (optionalFile.isPresent() && !optionalFile.get().isEmpty()) {
+            MultipartFile imageFile = optionalFile.get();
+            // Ensure the image is less than or equal to 10MB
+            if (imageFile.getSize() > 10 * 1024 * 1024) { // 10MB in bytes
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                     .body("File size exceeds the maximum limit of 10MB");
             }
 
-            ticketService.saveTicket(ticket);
-            return ResponseEntity.ok("Ticket successfully submitted");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error handling image file: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving ticket: " + e.getMessage());
+            byte[] imageBytes = imageFile.getBytes();
+            ticket.setImage(imageBytes);
         }
+
+        ticketService.saveTicket(ticket);
+        return ResponseEntity.ok("Ticket successfully submitted");
+    } catch (IOException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error handling image file: " + e.getMessage());
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving ticket: " + e.getMessage());
     }
+}
     
 
 
