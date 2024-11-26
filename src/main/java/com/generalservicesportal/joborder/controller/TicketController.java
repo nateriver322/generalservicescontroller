@@ -281,11 +281,6 @@ public ResponseEntity<?> submitPersonnelFeedback(
                 return ResponseEntity.badRequest().body("This personnel is not assigned to the ticket");
             }
             
-            // Check if feedback has already been submitted
-            if (ticket.getPersonnelFeedbacks().containsKey(personnelUsername)) {
-                return ResponseEntity.badRequest().body("Feedback has already been submitted for this ticket");
-            }
-            
             ticket.addPersonnelFeedback(personnelUsername, feedback);
             ticketService.saveTicket(ticket);
 
