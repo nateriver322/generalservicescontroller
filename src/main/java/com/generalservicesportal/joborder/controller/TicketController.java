@@ -36,7 +36,8 @@ public class TicketController {
                                           @RequestParam("workType") String workType,
                                           @RequestParam("requestType") String requestType,
                                           @RequestParam("location") String location,
-                                          @RequestParam("description") String description) {
+                                          @RequestParam("description") String description,
+                                      @RequestParam("datetime") String clientDatetime)  {
         try {
             Ticket ticket = new Ticket();
             ticket.setUsername(username);
@@ -45,9 +46,9 @@ public class TicketController {
             ticket.setRequestType(requestType);
             ticket.setLocation(location);
 
-            // Automatically set the current date and time
-            String currentDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
-            ticket.setDatetime(currentDatetime);
+           // Use the client-side datetime instead of server time
+        ticket.setDatetime(clientDatetime);
+
 
             ticket.setDescription(description);
             ticket.setStatus("Pending");
