@@ -1,8 +1,20 @@
 package com.generalservicesportal.joborder.model;
 
-import jakarta.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "tickets")
@@ -19,6 +31,7 @@ public class Ticket {
     private byte[] image;
 
     private String priority;
+    private String latestDateNeeded;
     private String workType;
     private String requestType;
     private String location;
@@ -86,6 +99,14 @@ public class Ticket {
 
     public void setWorkType(String workType) {
         this.workType = workType;
+    }
+
+    public String getLatestDateNeeded(){
+        return latestDateNeeded;
+    }
+
+    public void setLatestDateNeeded(String latestDateNeeded){
+        this.latestDateNeeded = latestDateNeeded;
     }
 
     public String getRequestType() {

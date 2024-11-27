@@ -1,20 +1,35 @@
 package com.generalservicesportal.joborder.controller;
 
-import com.generalservicesportal.joborder.model.Ticket;
-import com.generalservicesportal.joborder.service.NotificationService;
-import com.generalservicesportal.joborder.service.TicketService;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.stream.Collectors;
-import java.util.*;
+import com.generalservicesportal.joborder.model.Ticket;
+import com.generalservicesportal.joborder.service.NotificationService;
+import com.generalservicesportal.joborder.service.TicketService;
 
 
 @RestController
@@ -33,6 +48,7 @@ public class TicketController {
     public ResponseEntity<?> uploadTicket(@RequestParam("image") Optional<MultipartFile> optionalFile,
                                           @RequestParam("username") String username,
                                           @RequestParam("priority") String priority,
+                                          @RequestParam("latestDateNeeded") String latestDateNeeded,
                                           @RequestParam("workType") String workType,
                                           @RequestParam("requestType") String requestType,
                                           @RequestParam("location") String location,
@@ -42,6 +58,7 @@ public class TicketController {
             Ticket ticket = new Ticket();
             ticket.setUsername(username);
             ticket.setPriority(priority);
+            ticket.setLatestDateNeeded(latestDateNeeded);
             ticket.setWorkType(workType);
             ticket.setRequestType(requestType);
             ticket.setLocation(location);
