@@ -12,10 +12,10 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("https://generalservices.vercel.app/"); // Adjust this to your frontend URL
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        config.setAllowCredentials(true); // Enables cookies/auth headers
+        config.addAllowedOrigin("https://generalservices.vercel.app"); // No trailing slash
+        config.addAllowedHeader("*"); // Allow all headers
+        config.addAllowedMethod("*"); // Allow all HTTP methods (GET, POST, etc.)
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
