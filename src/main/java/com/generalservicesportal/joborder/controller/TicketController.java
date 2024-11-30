@@ -259,14 +259,21 @@ public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String p
     public ResponseEntity<?> submitStaffFeedback(@PathVariable Long ticketId, @RequestBody Map<String, String> payload) {
         try {
             String feedback = payload.get("feedback");
+            String clientResolvedDatetime = payload.get("resolvedDatetime");
+            
             Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
             if (optionalTicket.isPresent()) {
                 Ticket ticket = optionalTicket.get();
                 ticket.setFeedback(feedback);
                 ticket.setStatus("Resolved"); // Change status to "Done"
 
-                String resolvedDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
-                ticket.setResolvedDatetime(resolvedDatetime);
+                if (clientResolvedDatetime != null && !clientResolvedDatetime.isEmpty()) {
+                    ticket.setResolvedDatetime(clientResolvedDatetime);
+                } else {
+                    // Fallback to server time if client datetime is missing
+                    String fallbackDatetime = new SimpleDateFormat("MMM dd, yyyy 'at' HH:mm").format(new Date());
+                    ticket.setResolvedDatetime(fallbackDatetime);
+                }
                 
                 ticketService.saveTicket(ticket);
 
