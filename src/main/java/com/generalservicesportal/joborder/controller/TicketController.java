@@ -58,7 +58,7 @@ public class TicketController {
             Ticket ticket = new Ticket();
             ticket.setUsername(username);
             ticket.setPriority(priority);
-            ticket.setLatestDateNeeded(latestDateNeeded);
+            ticket.setLatestDateNeeded(latestDateNeeded.trim().split(",")[0]);
             ticket.setWorkType(workType);
             ticket.setRequestType(requestType);
             ticket.setLocation(location);
