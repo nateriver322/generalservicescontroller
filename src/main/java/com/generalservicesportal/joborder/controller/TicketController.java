@@ -153,14 +153,18 @@ public ResponseEntity<List<Ticket>> getAllTickets() {
     }
     
     @PostMapping("/tickets/assign")
-    public ResponseEntity<?> assignTicketToPersonnel(
-        @RequestParam Long ticketId,
-        @RequestParam List<String> personnelUsernames,
-        @RequestParam String scheduledRepairDate) {
-        try {
-            Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
-            if (optionalTicket.isPresent()) {
-                Ticket ticket = optionalTicket.get();
+public ResponseEntity<?> assignTicketToPersonnel(
+    @RequestParam Long ticketId,
+    @RequestParam List<String> personnelUsernames,
+    @RequestParam String scheduledRepairDate) {
+    try {
+        Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
+        if (optionalTicket.isPresent()) {
+            Ticket ticket = optionalTicket.get();
+
+            // Handle special case for "Others" workType
+            if ("Others".equalsIgnoreCase(ticket.getWorkType())) {
+                // Allow manual assignment but ensure clear messaging for the staff
                 ticket.setAssignedPersonnel(String.join(", ", personnelUsernames));
                 ticket.setStatus("Ongoing");
 
@@ -172,14 +176,30 @@ public ResponseEntity<List<Ticket>> getAllTickets() {
                 ticket.setScheduledRepairDate(formattedDate);
 
                 ticketService.saveTicket(ticket);
-                return ResponseEntity.ok("Ticket successfully assigned");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticket not found");
+                return ResponseEntity.ok("Ticket with workType 'Others' manually assigned successfully.");
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error assigning ticket: " + e.getMessage());
+
+            // Default assignment process for other workTypes
+            ticket.setAssignedPersonnel(String.join(", ", personnelUsernames));
+            ticket.setStatus("Ongoing");
+
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy");
+            Date date = inputFormat.parse(scheduledRepairDate.split("T")[0]);
+            String formattedDate = outputFormat.format(date);
+
+            ticket.setScheduledRepairDate(formattedDate);
+
+            ticketService.saveTicket(ticket);
+            return ResponseEntity.ok("Ticket successfully assigned.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticket not found.");
         }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Error assigning ticket: " + e.getMessage());
     }
+}
 
     @GetMapping("/tickets/personnel/{personnelUsername}")
 public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String personnelUsername) {
