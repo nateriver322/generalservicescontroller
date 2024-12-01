@@ -161,18 +161,26 @@ public ResponseEntity<List<Ticket>> getAllTickets() {
             Optional<Ticket> optionalTicket = ticketService.getTicketById(ticketId);
             if (optionalTicket.isPresent()) {
                 Ticket ticket = optionalTicket.get();
-                ticket.setAssignedPersonnel(String.join(", ", personnelUsernames));
-                ticket.setStatus("Ongoing");
-
-                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy");
-                Date date = inputFormat.parse(scheduledRepairDate.split("T")[0]);
-                String formattedDate = outputFormat.format(date);
-
-                ticket.setScheduledRepairDate(formattedDate);
-
-                ticketService.saveTicket(ticket);
-                return ResponseEntity.ok("Ticket successfully assigned");
+    
+                // Check if work type is "Others"
+                if ("Others".equalsIgnoreCase(ticket.getWorkType())) {
+                    // Enable manual assignment
+                    ticket.setAssignedPersonnel(String.join(", ", personnelUsernames));
+                    ticket.setStatus("Ongoing");
+    
+                    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd, yyyy");
+                    Date date = inputFormat.parse(scheduledRepairDate.split("T")[0]);
+                    String formattedDate = outputFormat.format(date);
+    
+                    ticket.setScheduledRepairDate(formattedDate);
+    
+                    ticketService.saveTicket(ticket);
+                    return ResponseEntity.ok("Ticket with work type 'Others' successfully assigned manually");
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                         .body("Manual assignment is only allowed for tickets with work type 'Others'");
+                }
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticket not found");
             }
@@ -180,6 +188,7 @@ public ResponseEntity<List<Ticket>> getAllTickets() {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error assigning ticket: " + e.getMessage());
         }
     }
+    
 
     @GetMapping("/tickets/personnel/{personnelUsername}")
 public ResponseEntity<List<Ticket>> getTicketsByPersonnel(@PathVariable String personnelUsername) {
